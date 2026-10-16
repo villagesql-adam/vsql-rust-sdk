@@ -25,7 +25,7 @@ lib/<name>.so
 
 ### `cargo vsql install`
 
-Runs `package`, then copies the `.veb` into `$VillageSQL_BUILD_DIR/veb_output_directory`. Required before running tests against a local VillageSQL build.
+Runs `package`, then copies the `.veb` into `$VillageSQL_BUILD_DIR/lib/veb`, the directory the server reads. When `VillageSQL_BUILD_DIR` is not set, it uses `~/.villagesql/prebuilt`, where the install script puts the server.
 
 ```sh
 export VillageSQL_BUILD_DIR=/path/to/villagesql/build
@@ -63,7 +63,7 @@ INSTALL EXTENSION my_extension;
 UNINSTALL EXTENSION my_extension;
 ```
 
-If you're running a standalone installed server (not an MTR test server), copy the `.veb` from `dist/` to the server's configured `veb_dir` instead of using `cargo vsql install`.
+If your server reads extensions from another directory, copy the `.veb` from `dist/` to the directory that `SHOW VARIABLES LIKE 'veb_dir'` reports.
 
 ## Writing tests
 

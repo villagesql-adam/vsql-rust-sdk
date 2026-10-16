@@ -31,7 +31,7 @@ struct Args {
 enum Cmd {
     /// Build and package the extension in the current directory as a .veb archive
     Package,
-    /// Package and install to `$VillageSQL_BUILD_DIR/veb_output_directory`
+    /// Package and install to `$VillageSQL_BUILD_DIR/lib/veb`, the directory the server reads
     Install,
     /// Install and run the mysql-test suite
     Test {
@@ -198,8 +198,19 @@ fn build_dir() -> Result<PathBuf> {
     Ok(PathBuf::from(&home).join(".villagesql"))
 }
 
+// The server reads `lib/veb`. A source build tree has it as a link to
+// `veb_output_directory`; a release tarball has only `lib/veb`.
+fn veb_install_dir(build_dir: &Path) -> PathBuf {
+    let lib_veb = build_dir.join("lib").join("veb");
+    if lib_veb.is_dir() {
+        lib_veb
+    } else {
+        build_dir.join("veb_output_directory")
+    }
+}
+
 fn install(name: &str, veb: &Path) -> Result<()> {
-    let install_dir = build_dir()?.join("veb_output_directory");
+    let install_dir = veb_install_dir(&build_dir()?);
     std::fs::create_dir_all(&install_dir)?;
     let dest = install_dir.join(format!("{name}.veb"));
     std::fs::copy(veb, &dest)?;
@@ -232,4 +243,25 @@ fn run_tests(ext_dir: &Path, record: bool) -> Result<()> {
     }
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::veb_install_dir;
+
+    #[test]
+    fn installs_into_lib_veb_when_present() {
+        let dir = std::env::temp_dir().join(format!("cargo-vsql-libveb-{}", std::process::id()));
+        std::fs::create_dir_all(dir.join("lib").join("veb")).unwrap();
+        assert_eq!(veb_install_dir(&dir), dir.join("lib").join("veb"));
+        std::fs::remove_dir_all(&dir).unwrap();
+    }
+
+    #[test]
+    fn falls_back_to_veb_output_directory() {
+        let dir = std::env::temp_dir().join(format!("cargo-vsql-noveb-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        assert_eq!(veb_install_dir(&dir), dir.join("veb_output_directory"));
+        std::fs::remove_dir_all(&dir).unwrap();
+    }
 }
