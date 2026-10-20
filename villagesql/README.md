@@ -86,7 +86,7 @@ Run these commands from inside your extension directory (not the workspace root)
 # Build and create dist/my-extension.veb
 cargo vsql package
 
-# Package + copy to $VillageSQL_BUILD_DIR/veb_output_directory
+# Package + copy to $VillageSQL_BUILD_DIR/lib/veb (the directory the server reads)
 export VillageSQL_BUILD_DIR=/path/to/villagesql/build
 cargo vsql install
 

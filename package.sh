@@ -72,7 +72,13 @@ if [[ "$INSTALL" == true ]]; then
         echo "Error: VillageSQL_BUILD_DIR is not set" >&2
         exit 1
     fi
-    INSTALL_DIR="$VillageSQL_BUILD_DIR/veb_output_directory"
+    # The server reads lib/veb. A source build tree has it as a link to
+    # veb_output_directory; a release tarball has only lib/veb.
+    if [[ -d "$VillageSQL_BUILD_DIR/lib/veb" ]]; then
+        INSTALL_DIR="$VillageSQL_BUILD_DIR/lib/veb"
+    else
+        INSTALL_DIR="$VillageSQL_BUILD_DIR/veb_output_directory"
+    fi
     mkdir -p "$INSTALL_DIR"
     cp "$VEB" "$INSTALL_DIR/"
     echo "Installed to: $INSTALL_DIR/${EXTENSION}.veb"
